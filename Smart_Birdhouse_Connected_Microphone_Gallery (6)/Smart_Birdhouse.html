@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#174a36"><title>Smart Birdhouse | Live Bird AI</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#edf5ef;color:#173d2b;font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}main{max-width:870px;margin:0 auto;padding:18px}h1{margin:0 0 12px;font-size:2rem}h2{margin:4px 0 12px}nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}button,.action{cursor:pointer;display:inline-block;border:none;background:#245b41;border-radius:10px;color:#fff;padding:11px 14px;text-decoration:none;font:inherit;font-weight:600}button:hover,.action:hover{background:#19432f}.secondary{background:#e2eee5;color:#17402a}.secondary:hover{background:#d0e5d7;color:#17402a}section{background:white;margin:15px 0;padding:18px;border-radius:16px;box-shadow:0 2px 10px #102a1910}section[hidden]{display:none!important}.hero{background:#dcefe0;border-radius:14px;padding:24px;text-align:center}.subtle{color:#506455;font-size:.9rem}.warning{background:#fff4d4;padding:12px;border-radius:10px;color:#54420b}.good{background:#e2f5e9;padding:12px;border-radius:10px}.tag{display:inline-block;background:#184b32;color:white;padding:4px 10px;border-radius:30px;font-size:.82rem;font-weight:700}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.preview{position:relative;background:#101c16;border-radius:14px;overflow:hidden;margin:12px 0}.preview video{display:block;width:100%;max-height:390px;object-fit:contain;min-height:190px}.live{position:absolute;left:12px;top:12px;background:#353535;color:white;padding:6px 10px;border-radius:9px;font-size:.82rem}.result{background:#f0f7f1;padding:12px;border-radius:12px;margin:12px 0}.result img{width:220px;max-width:100%;border-radius:11px;display:block;margin:8px 0}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.photo{border:1px solid #d8e6d9;border-radius:12px;padding:10px}.photo img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:#e6efe9}.photo .meta{margin:5px 0;font-size:.87rem;color:#455d4c}.photo .fallback{display:grid;place-items:center;background:#e8f0e8;aspect-ratio:4/3;border-radius:8px;font-size:.94rem;text-align:center;padding:12px}.photo .species{font-style:italic;color:#4e6b58;font-size:.85rem}.photo a{color:#185b3b}.embed{width:100%;height:680px;border:1px solid #bdd9c4;border-radius:12px;background:white}details{padding:10px;background:#f3f8f4;border-radius:10px}
+#micPhotos{display:flex;flex-direction:column;gap:11px}.mic-entry{border:1px solid #d3e4d7;border-radius:14px;padding:15px 16px;background:#f8fbf8;box-shadow:0 1px 3px #173d2b08}.mic-entry-header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.mic-entry-name{font-weight:750;font-size:1.17rem;letter-spacing:-.02em}.mic-entry-time{color:#4c6655;font-size:.94rem}.mic-entry .info-button{margin-top:11px}.mic-info{margin-top:13px;padding:15px;border-radius:12px;background:#eef6f0;border:1px solid #d5e8da}.mic-info[hidden]{display:none!important}.info-line{margin:0 0 14px}.info-line strong{display:block;margin-bottom:3px}.mic-info a{font-weight:600}.mic-info audio{display:block;max-width:100%;width:100%;margin:9px 0 5px}.mic-muted{font-size:.86rem;color:#516859}.mic-info .info-source{font-size:.82rem}.mic-info button{font-size:.92rem}small{color:#526458}a{color:#155b3b}nav button[aria-current="page"]{background:#123d2b;outline:2px solid #7fb395}
+</style></head><body><main>
+<h1>🐦 Smart Birdhouse</h1>
+<nav aria-label="Birdhouse pages">
+<button data-page="home">Home</button><button data-page="camera">Camera</button><button data-page="moments">Key Moments</button><button data-page="gallery">Gallery</button><button data-page="temperature">Temperature</button><button data-page="microphone">Microphone</button><button data-page="cameraAI">Camera AI</button><button data-page="micGallery">Microphone Gallery</button>
+</nav>
+<section id="home"><div class="hero"><h2>Bird in House</h2><p id="status">Waiting for birdhouse sensor data</p></div><p>Movements detected: <b id="count">0</b></p><p>Estimated time inside: <b id="timeInside">Not available</b></p><p>Last bird activity: <span id="last">None yet</span></p><p>Estimated departure: <span id="depart">Not available</span></p><p class="subtle">Arduino connection is not changed in this version. Live phone camera and audio features are separate.</p></section>
+<section id="camera" hidden><button class="secondary" data-page="home">← Home</button><h2>Camera</h2><div class="preview"><video id="video" autoplay muted playsinline></video></div><div class="row"><button id="start">Enable phone camera</button><button class="secondary" id="stop">Stop phone camera</button></div><p id="cameraStatus">Camera off</p><p class="subtle">This camera preview uses your phone, not the Arduino. For automatic bird-only photos, open Camera AI.</p></section>
+<section id="moments" hidden><button class="secondary" data-page="home">← Home</button><h2>Key Moments</h2><div id="momentsList">Your verified bird camera snapshots will appear in Gallery.</div></section>
+<section id="gallery" hidden><button class="secondary" data-page="home">← Home</button><h2>Gallery</h2><h3>📷 Camera</h3><p>Clear cropped photos saved automatically after repeated AI bird detections. People and general movement do not trigger saving.</p><div class="gallery" id="photos"></div><p class="subtle">Photos are stored in this browser on this device. Model predictions are estimates; a printed photo of a bird could also trigger the detector.</p></section>
+<section id="temperature" hidden><button class="secondary" data-page="home">← Home</button><h2>Temperature</h2><p id="temperatureReading">Waiting for temperature data from Arduino</p><p class="subtle">No Arduino changes yet. Temperature history will require actual readings from your Arduino.</p></section>
+<section id="microphone" hidden><button class="secondary" data-page="home">← Home</button><h2>🎤 Microphone · BirdNET Live</h2>
+<p><strong>Real bird-sound AI, separate from the camera.</strong> Tap <b>Start</b> inside BirdNET Live below and allow microphone access. It keeps identifying birds while listening; no uploads or individual recording buttons.</p>
+<p class="good"><b>BirdNET Live:</b> free open-source AI from the BirdNET project. Sound is processed on your device, not sent to our server.</p>
+<iframe class="embed" id="birdnetFrame" title="BirdNET Live sound recognition" loading="lazy" src="https://birdnet-team.github.io/real-time-pwa/" allow="microphone; autoplay"></iframe>
+<p><a class="action secondary" href="https://birdnet-team.github.io/real-time-pwa/" target="_blank" rel="noopener noreferrer">If BirdNET doesn't load here, open it in the browser</a></p>
+<p id="micSyncStatus" class="warning" role="status">Checking Microphone Gallery connection…</p>
+<p id="micLastResult" class="subtle">No microphone AI predictions received by the gallery yet.</p>
+<p class="subtle">Start BirdNET once and allow microphone access. When the connected version is active, qualifying bird detections save automatically to the Microphone AI Gallery, even with Camera AI switched off. Bird information and sample calls need internet access.</p>
+</section>
+<section id="cameraAI" hidden><button class="secondary" data-page="home">← Home</button><h2>📷 Camera AI · Bird species model</h2>
+<p><strong>Two real AI models run directly in your browser:</strong> one checks that the object is a bird, and a second tries to name its species from 525 trained bird categories. No API server address is needed.</p>
+<p class="subtle">The model is not guaranteed to know every bird in the world. It can still mistake similar species. The name and percentages are estimates, not proof.</p>
+<div class="row"><button id="startAI">Enable Camera AI</button><button id="stopAI" class="secondary">Stop Camera AI</button></div>
+<div class="preview"><video id="aiPreview" autoplay muted playsinline></video><span id="aiLiveBadge" class="live">● Camera off</span></div>
+<p id="aiStatus" role="status">Camera AI off</p><p id="aiResult">Waiting to look for a bird…</p>
+<div id="aiBird" class="result" hidden><img id="aiBirdPhoto" alt="AI-detected bird from live camera"><b id="aiBirdName"></b> <span id="aiBirdConfidence"></span></div>
+<p class="subtle">AI downloads from public model providers the first time you use it (roughly tens of MB). Keep the page open and unlocked, and use HTTPS. After a bird is detected repeatedly, one cropped frame is saved to the Camera Gallery, with a cooldown to reduce duplicates.</p>
+<details><summary>AI model details</summary><p>Bird detection: TensorFlow.js COCO-SSD (bird class). Bird species estimate: <a href="https://huggingface.co/chriamue/bird-species-classifier" target="_blank" rel="noopener">bird-species-classifier</a> via Transformers.js; trained on 525 species. This is not Merlin, not BirdID and not a universal wildlife-identification model.</p></details>
+</section>
+<section id="micGallery" hidden><button class="secondary" data-page="home">← Home</button><h2>🎤 Microphone AI Gallery</h2>
+<p><strong>Birds heard by BirdNET.</strong> Each entry shows the bird's name and when it was heard. Tap <b>See more information</b> for local occurrence near Lake Cathie (when verified), habitat, conservation status, the BirdNET score and recordings of its calls. No photos or camera connection needed.</p>
+<div class="row"><button class="secondary" data-page="microphone">🎤 Return to live listening</button><button class="secondary" id="testMicGallery">Test with sample bird</button><button class="secondary" id="clearMicTest">Remove test entries</button><span id="micGalleryCount" class="tag">0 saved</span></div>
+<div class="gallery" id="micPhotos" aria-live="polite"></div>
+<p class="subtle">Records are stored in this browser, and only connected BirdNET detections can be added automatically. Local occurrence near Lake Cathie is awaiting verified map coordinates. BirdNET's score is separate from whether a species occurs locally. Other information and sample calls are looked up online when you open the details. Some species may not have every detail available.</p></section>
+<p class="subtle">Sources: <a href="https://github.com/birdnet-team/real-time-pwa" target="_blank" rel="noopener">BirdNET Live</a> · <a href="https://huggingface.co/chriamue/bird-species-classifier" target="_blank" rel="noopener">Bird species model</a> · <a href="https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd" target="_blank" rel="noopener">COCO-SSD</a></p>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const pages=['home','camera','moments','gallery','temperature','microphone','cameraAI','micGallery'];
+function show(page){for(const id of pages)$(id).hidden=id!==page;document.querySelectorAll('button[data-page]').forEach(b=>b.setAttribute('aria-current',b.dataset.page===page?'page':'false'));if(page==='gallery')renderGallery();if(page==='micGallery')renderMicGallery()}
+document.querySelectorAll('button[data-page]').forEach(btn=>btn.addEventListener('click',()=>show(btn.dataset.page)));show('home');
+const galleryKey='birdhousePhotos',micGalleryKey='birdhouseMicGallery';
+function stored(key){try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return []}}
+function renderGallery(){const root=$('photos');root.replaceChildren();const photos=stored(galleryKey).filter(x=>x?.data && x.name && x.name!=='Earlier camera capture');if(!photos.length){const p=document.createElement('p');p.textContent='No verified bird photos saved yet. Start Camera AI and aim the camera at a bird.';root.append(p);return}photos.forEach(p=>{const card=document.createElement('div');card.className='photo';const h=document.createElement('b');h.textContent=p.name+' — '+(p.percent==null?'species score unavailable':p.percent+'% species estimate');const img=document.createElement('img');img.src=p.data;img.alt='Bird camera capture';const stamp=document.createElement('p');stamp.className='subtle';stamp.textContent=p.time;const link=document.createElement('a');link.href=p.data;link.download='bird-'+Date.now()+'.jpg';link.textContent='Save photo';card.append(h,img,stamp,link);root.append(card)});}
+function saveBird(data,name,percent){const list=stored(galleryKey);list.unshift({data,name,percent,time:new Date().toLocaleString()});try{localStorage.setItem(galleryKey,JSON.stringify(list.slice(0,12)))}catch(e){$('aiStatus').textContent='Bird found but photo storage is full. Save or remove older images.'}renderGallery()}
+// BirdNET audio predictions are independent of the phone camera.
+// For automatic detections this page and patched BirdNET must share the same HTTPS origin.
+const birdnetLocalPath='./birdnet/';
+const micGalleryKeyVersion=2;
+const MIC_MIN_SCORE=0.35; // BirdNET model score (not a probability of correct ID)
+const MIC_CONFIRM_SCORE=0.65; // High-scoring birds save on the first result
+const MIC_CONFIRM_MS=1800; // Lower-scoring birds need a second result
+const MIC_DUPLICATE_MS=90000;
+const microphoneFirstSeen=new Map(),micLastSaved=new Map();
+let micConnected=false;
+// The microphone gallery contains text and bird calls only: no image loading.
+function isBirdSoundSpecies(candidate){
+  const label=String(candidate.commonName||candidate.scientificName||'').trim();
+  const sci=String(candidate.scientificName||'').trim();
+  if(!label)return false;
+  if(/^(human|speech|human vocal|human non.vocal|non.bird|unknown|background|rain|wind|music|engine|dog|cat)(?:\b|$)/i.test(label))return false;
+  if(/^(human|non.bird|unknown|background|rain|wind|music|engine)(?:\b|$)/i.test(sci))return false;
+  return true;
+}
+function birdCardStamp(item){
+  const d=Number.isFinite(Number(item.savedAt))&&Number(item.savedAt)>0
+    ?new Date(Number(item.savedAt)):new Date(item.time||Date.now());
+  if(!Number.isFinite(d.getTime()))return {date:item.time||'Date unavailable',time:'Time unavailable'};
+  return {date:new Intl.DateTimeFormat('en-AU',{day:'numeric',month:'short',year:'numeric'}).format(d),time:new Intl.DateTimeFormat('en-AU',{hour:'numeric',minute:'2-digit',hour12:true}).format(d)};
+}
+function textNode(tag,contents,cls){const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=contents;return el}
+function externalLink(label,url){const a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a}
+function infoLine(parent,title,body,source){
+  const row=document.createElement('div');row.className='info-line';
+  row.append(textNode('strong',title),textNode('div',body));
+  if(source)row.append(externalLink('Check source',source));
+  parent.append(row);return row;
+}
+// Local bird occurrence requires verified geographic records; do not invent occurrence estimates.
+const LOCAL_BIRD_AREA='Lake Cathie';
+async function getJSON(url){
+  const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),11000);
+  try{const response=await fetch(url,{signal:ctrl.signal});if(!response.ok)throw Error('Service returned '+response.status);return await response.json()}
+  finally{clearTimeout(timer)}
+}
+function infoUrl(base,params){const u=new URL(base);for(const [k,v] of Object.entries(params))u.searchParams.set(k,String(v));return u.toString()}
+function validSpeciesName(name){const val=String(name||'').trim().replaceAll('_',' ').slice(0,110);return /^[\p{L}][\p{L}\p{M} .’'\-×()]{1,109}$/u.test(val)?val:''}
+async function findINaturalistTaxon(item){
+  for(const name of [item.scientificName,item.name].map(validSpeciesName).filter(Boolean)){
+    try{const data=await getJSON(infoUrl('https://api.inaturalist.org/v1/taxa/autocomplete',{q:name,per_page:8}));
+      const choices=(data.results||[]).filter(t=>t.iconic_taxon_name==='Aves'&&t.rank==='species');
+      const candidate=choices.find(t=>t.name?.toLowerCase()===name.toLowerCase())||
+       (name===item.name?choices.find(t=>t.preferred_common_name?.toLowerCase()===name.toLowerCase()):null);
+      if(candidate)return candidate;
+    }catch(e){/* try alternate name */}
+  }
+  return null;
+}
+async function loadLakeCathieDetails(item,holder){
+  infoLine(holder,'Near '+LOCAL_BIRD_AREA+'?',
+    'Local likelihood not available yet: the exact location for Lake Cathie has not been verified. Habitat and conservation details below are still available.');
+}
+async function findWikiPage(item){
+  for(const name of [item.scientificName,item.name].map(validSpeciesName).filter(Boolean)){
+    try{
+      const result=await getJSON(infoUrl('https://en.wikipedia.org/w/api.php',{
+        action:'query',format:'json',origin:'*',redirects:1,titles:name,prop:'pageprops',ppprop:'wikibase_item'}));
+      const page=Object.values(result.query?.pages||{}).find(x=>x.pageid&&!x.missing);
+      if(page)return {title:page.title,wikibase:page.pageprops?.wikibase_item||'',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(page.title.replaceAll(' ','_'))};
+    }catch(e){/* try next */}
+  }
+  return null;
+}
+async function loadHabitatDetails(item,holder,wiki){
+  if(!wiki){infoLine(holder,'Habitat','Habitat information could not be located for this species.');return}
+  try{
+    const data=await getJSON(infoUrl('https://en.wikipedia.org/w/api.php',{action:'parse',format:'json',origin:'*',page:wiki.title,prop:'sections'}));
+    const section=(data.parse?.sections||[]).find(s=>/habitat|distribution|range and/i.test(s.line.replace(/<[^>]*>/g,'')));
+    if(!section)throw Error('No habitat section');
+    const part=await getJSON(infoUrl('https://en.wikipedia.org/w/api.php',{action:'parse',format:'json',origin:'*',page:wiki.title,prop:'text',section:section.index}));
+    const doc=new DOMParser().parseFromString(part.parse?.text?.['*']||'','text/html');
+    const paragraphs=[...doc.querySelectorAll('p')].map(p=>p.textContent.replace(/\[[\d,\s]+\]/g,'').replace(/\s+/g,' ').trim()).filter(x=>x.length>45);
+    if(!paragraphs.length)throw Error('Empty habitat section');
+    let extract=paragraphs.slice(0,2).join(' ');
+    if(extract.length>600)extract=extract.slice(0,597).replace(/\s+\S*$/,'')+'…';
+    infoLine(holder,'Habitat and range',extract,wiki.url);
+  }catch(e){infoLine(holder,'Habitat and range','Detailed habitat text is not available here. Open the species article to read about where it lives.',wiki.url)}
+}
+async function loadConservationDetails(holder,wiki){
+  if(!wiki?.wikibase){infoLine(holder,'Conservation status','Not available automatically. Check a trusted conservation listing.');return}
+  const source='https://www.wikidata.org/wiki/'+encodeURIComponent(wiki.wikibase);
+  try{
+    const data=await getJSON(infoUrl('https://www.wikidata.org/w/api.php',{action:'wbgetentities',format:'json',origin:'*',ids:wiki.wikibase,props:'claims'}));
+    const statements=data.entities?.[wiki.wikibase]?.claims?.P141||[];
+    const usable=statements.find(c=>c.rank==='preferred')||statements.find(c=>c.rank!=='deprecated');
+    const id=usable?.mainsnak?.datavalue?.value?.id;
+    if(!id)throw Error('No conservation status');
+    const labels=await getJSON(infoUrl('https://www.wikidata.org/w/api.php',{action:'wbgetentities',format:'json',origin:'*',ids:id,props:'labels',languages:'en'}));
+    const label=labels.entities?.[id]?.labels?.en?.value;
+    if(!label)throw Error('No status label');
+    infoLine(holder,'Global conservation status',label.charAt(0).toUpperCase()+label.slice(1)+' (status listed on Wikidata; check IUCN for the latest official assessment).',source);
+  }catch(e){infoLine(holder,'Global conservation status','Not available automatically. This does not mean the bird is safe or endangered.',source)}
+}
+async function findCommonsAudio(item){
+  for(const name of [item.scientificName,item.name].map(validSpeciesName).filter(Boolean)){
+    try{
+      const data=await getJSON(infoUrl('https://commons.wikimedia.org/w/api.php',{
+        action:'query',format:'json',origin:'*',generator:'search',gsrsearch:name,
+        gsrnamespace:6,gsrlimit:30,prop:'imageinfo',iiprop:'url|mime|size'}));
+      const matches=Object.values(data.query?.pages||{}).filter(p=>{
+        const ii=p.imageinfo?.[0];return ii&&/^audio\//.test(ii.mime||'')&&/\.(ogg|oga|mp3|wav|flac)$/i.test(p.title);
+      });
+      matches.sort((a,b)=>{
+        const score=p=>(p.title.toLowerCase().includes(name.toLowerCase())?50:0)+
+          (/call|song|sing|vocal|bird/i.test(p.title)?12:0)-
+          Math.min((p.imageinfo?.[0]?.size||0)/2000000,15);
+        return score(b)-score(a);
+      });
+      if(matches.length){const top=matches[0],ii=top.imageinfo[0];return {url:ii.url,description:ii.descriptionurl,title:top.title.replace(/^File:/,'')};}
+    }catch(e){/* try next */}
+  }
+  return null;
+}
+async function loadBirdCalls(item,holder){
+  const row=document.createElement('div');row.className='info-line';row.append(textNode('strong','Hear its call'));
+  const holderText=textNode('div','Looking for a playable bird call…');row.append(holderText);holder.append(row);
+  const name=validSpeciesName(item.scientificName)||validSpeciesName(item.name);
+  const searchLink=externalLink('Browse bird calls on Xeno-canto',
+    'https://xeno-canto.org/explore?query='+encodeURIComponent(name||item.name));
+  try{
+    const sound=await findCommonsAudio(item);
+    if(!row.isConnected)return;
+    if(sound){holderText.textContent='Sample recording of this species (not the actual sound heard by your microphone).';
+      const player=document.createElement('audio');player.controls=true;player.preload='none';player.src=sound.url;
+      const fallback=textNode('div','If the sound will not play, try the recording website.','mic-muted');
+      row.append(player,externalLink('Recording details and licence',sound.description),fallback,document.createTextNode(' · '),searchLink);
+    }else{holderText.textContent='No playable Wikimedia recording was found automatically for this bird.';row.append(searchLink)}
+  }catch(e){holderText.textContent='Could not load a call recording right now.';row.append(searchLink)}
+}
+async function populateBirdDetails(item,holder){
+  holder.replaceChildren();
+  const score=Number(item.percent);
+  infoLine(holder,'Microphone identification score',Number.isFinite(score)?score.toFixed(1)+'% BirdNET model score — not the percentage chance that the species name is correct.':'Score unavailable');
+  if(item.scientificName)infoLine(holder,'Scientific name',item.scientificName);
+  const pending=textNode('div','Looking up bird information online…','mic-muted');holder.append(pending);
+  // Sound calls do not need to wait for Wikipedia/iNaturalist lookups.
+  const wikiPromise=findWikiPage(item);
+  await Promise.allSettled([
+    loadLakeCathieDetails(item,holder),
+    (async()=>{const wiki=await wikiPromise;await Promise.allSettled([
+      loadHabitatDetails(item,holder,wiki),loadConservationDetails(holder,wiki)
+    ])})(),
+    loadBirdCalls(item,holder)
+  ]);
+  pending.remove();
+}
+function renderMicGallery(){
+  const root=$('micPhotos');root.replaceChildren();
+  const items=stored(micGalleryKey).filter(x=>x&&x.name);
+  $('micGalleryCount').textContent=items.length+' saved';
+  if(!items.length){root.append(textNode('p','No bird detections have been saved yet. The sample button lets you see how a bird entry will look. Real automatic saving requires BirdNET to be connected to this page on HTTPS.'));return}
+  for(const item of items){
+    const card=document.createElement('article');card.className='mic-entry';
+    const header=document.createElement('div');header.className='mic-entry-header';
+    header.append(textNode('span',(item.isTest?'🧪 SAMPLE · ':'🐦 ')+item.name,'mic-entry-name'));
+    const stamp=birdCardStamp(item);
+    header.append(textNode('span','🕒 '+stamp.time+' · '+stamp.date,'mic-entry-time'));
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary info-button';
+    toggle.textContent='See more information';toggle.setAttribute('aria-expanded','false');
+    const detail=document.createElement('div');detail.className='mic-info';detail.hidden=true;
+    toggle.addEventListener('click',()=>{
+      const opening=detail.hidden;detail.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));
+      toggle.textContent=opening?'Hide information':'See more information';
+      if(opening&&!detail.dataset.loaded){detail.dataset.loaded='true';populateBirdDetails(item,detail)}
+    });
+    card.append(header,toggle,detail);root.append(card);
+  }
+}
+function saveMicPrediction(candidate){
+  const name=String(candidate.commonName||'').trim().slice(0,130);
+  const scientificName=String(candidate.scientificName||'').trim().slice(0,130);
+  const score=Number(candidate.confidence);
+  if(!name||!isBirdSoundSpecies(candidate)||!Number.isFinite(score)||score<MIC_MIN_SCORE||score>1)return;
+  const key=(scientificName||name).toLowerCase(),now=Date.now();
+  // One confident result is enough. Lower scores need a repeat before saving.
+  if(score<MIC_CONFIRM_SCORE){
+    const previous=microphoneFirstSeen.get(key);
+    if(!previous||now-previous>12000){microphoneFirstSeen.set(key,now);return}
+    if(now-previous<MIC_CONFIRM_MS)return;
+    microphoneFirstSeen.delete(key);
+  }
+  if(now-(micLastSaved.get(key)||0)<MIC_DUPLICATE_MS)return;
+  const list=stored(micGalleryKey);
+  if(list.some(x=>(x.scientificName||x.name||'').toLowerCase()===key&&now-Number(x.savedAt||0)<MIC_DUPLICATE_MS))return;
+  const timestamp=new Date(now);
+  const entry={name,scientificName,percent:Math.round(score*1000)/10,
+    time:timestamp.toLocaleString('en-AU'),savedAt:now};
+  list.unshift(entry);
+  try{
+    localStorage.setItem(micGalleryKey,JSON.stringify(list.slice(0,80)));
+    micLastSaved.set(key,now);
+    $('micSyncStatus').textContent='✓ Saved to Microphone Gallery: '+name+' · '+entry.percent+'% · '+timestamp.toLocaleTimeString('en-AU');
+    renderMicGallery();
+  }catch(e){$('micSyncStatus').textContent='Bird recognised, but this browser could not save the entry.'}
+}
+window.addEventListener('message',e=>{
+  const frame=$('birdnetFrame');
+  if(!frame||e.source!==frame.contentWindow||e.origin!==location.origin)return;
+  const d=e.data;if(!d||typeof d!=='object')return;
+  if(d.type==='birdhouse-birdnet-state-v1'){
+    micConnected=true;
+    if(d.state==='listening')$('micSyncStatus').textContent='✓ Microphone AI connected and listening. Identified birds will save here automatically.';
+    if(d.state==='stopped')$('micSyncStatus').textContent='Connected microphone stopped. Tap Start in BirdNET to listen again.';
+    if(d.state==='ready')$('micSyncStatus').textContent='✓ Connected BirdNET loaded. Tap Start once to allow microphone access.';
+    return;
+  }
+  if(d.type!=='birdhouse-birdnet-detections-v1'||!Array.isArray(d.detections))return;
+  micConnected=true;
+  if(d.detections.length){
+    const p=d.detections[0];
+    const score=Number(p?.confidence);
+    $('micLastResult').textContent='Most recent microphone prediction: '+String(p?.commonName||p?.scientificName||'Bird')+
+      (Number.isFinite(score)?' · '+(score*100).toFixed(1)+'% BirdNET score':'')+
+      (score<MIC_MIN_SCORE?' · score below save threshold':score<MIC_CONFIRM_SCORE?' · waiting for a repeat':' · eligible for saving');
+  }
+  for(const candidate of d.detections.slice(0,1)){
+    if(candidate&&typeof candidate==='object')saveMicPrediction(candidate);
+  }
+});
+async function chooseBirdnetFrame(){
+  const frame=$('birdnetFrame');
+  if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
+    $('micSyncStatus').textContent='⚠️ BirdNET can listen, but automatic gallery saving is NOT connected in this downloaded preview. Publish the connected edition via HTTPS.';
+    return;
+  }
+  try{
+    const index=new URL(birdnetLocalPath,location.href);
+    const response=await fetch(index,{cache:'no-store'});
+    if(!response.ok)throw Error('Local BirdNET edition missing');
+    const text=await response.text();
+    if(!text.includes('BirdNET Live'))throw Error('No connected BirdNET build found');
+    frame.src=index.href;
+    $('micSyncStatus').textContent='Connected BirdNET edition found. Loading microphone AI…';
+  }catch(e){
+    $('micSyncStatus').textContent='⚠️ BirdNET may identify birds here, but its results cannot automatically save to the gallery yet. The connected edition must be published together with this page.';
+  }
+}
+chooseBirdnetFrame();
+renderMicGallery();
+renderGallery();
+$('testMicGallery').addEventListener('click',()=>{
+  const now=Date.now();
+  const list=stored(micGalleryKey).filter(x=>!x.isTest);
+  list.unshift({name:'Noisy miner',scientificName:'Manorina melanocephala',percent:87,
+    savedAt:now,time:new Date(now).toLocaleString('en-AU'),isTest:true});
+  try{localStorage.setItem(micGalleryKey,JSON.stringify(list.slice(0,80)));renderMicGallery()}
+  catch(e){alert('This browser could not save the sample bird entry. Check private browsing or storage restrictions.')}
+});
+$('clearMicTest').addEventListener('click',()=>{
+  try{const list=stored(micGalleryKey).filter(x=>!x.isTest);
+    localStorage.setItem(micGalleryKey,JSON.stringify(list));renderMicGallery()}
+  catch(e){alert('Unable to update gallery storage.')}
+});
+let stream=null,detector=null,classifier=null,aiTimer=null,aiBusy=false,aiRunning=false,streak=0,best=null,lastSeen=0,lastSaved=0,lastSavedName='';
+async function cameraOn(){if(stream?.active)return; if(!window.isSecureContext)throw Error('The camera needs an HTTPS webpage (or localhost).');if(!navigator.mediaDevices?.getUserMedia)throw Error('Camera access is unavailable in this browser.');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false});$('video').srcObject=stream;$('aiPreview').srcObject=stream;await $('video').play();$('aiPreview').play().catch(()=>{});$('cameraStatus').textContent='Phone camera running';$('aiLiveBadge').textContent='● LIVE · camera on';$('aiLiveBadge').style.background='#156c3e'}
+function stopAI(){aiRunning=false;clearTimeout(aiTimer);aiTimer=null;streak=0;best=null;$('aiStatus').textContent='Camera AI stopped';$('aiLiveBadge').textContent=stream?.active?'● Camera on · AI off':'● Camera off'}
+function cameraOff(){stopAI();stream?.getTracks().forEach(t=>t.stop());stream=null;$('video').srcObject=null;$('aiPreview').srcObject=null;$('cameraStatus').textContent='Camera stopped';$('aiLiveBadge').textContent='● Camera off';$('aiLiveBadge').style.background='#444'}
+$('start').onclick=()=>cameraOn().catch(e=>{$('cameraStatus').textContent=e.message});$('stop').onclick=cameraOff;$('stopAI').onclick=stopAI;
+async function loadScript(url){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=url;s.onload=ok;s.onerror=()=>fail(Error('AI library failed to download'));document.head.append(s)})}
+async function getDetector(){if(detector)return detector;if(!window.tf)await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');if(!window.cocoSsd)await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js');detector=await window.cocoSsd.load({base:'lite_mobilenet_v2'});return detector}
+async function getSpeciesClassifier(){if(classifier)return classifier;const module=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');classifier=await module.pipeline('image-classification','chriamue/bird-species-classifier',{quantized:false});return classifier}
+function cropBird(video,box){const [x,y,w,h]=box;const pad=Math.max(w,h)*.12;const sx=Math.max(0,x-pad),sy=Math.max(0,y-pad),sw=Math.min(video.videoWidth-sx,w+2*pad),sh=Math.min(video.videoHeight-sy,h+2*pad);const c=document.createElement('canvas');const max=640,scale=Math.min(1,max/Math.max(sw,sh));c.width=Math.max(1,Math.round(sw*scale));c.height=Math.max(1,Math.round(sh*scale));c.getContext('2d').drawImage(video,sx,sy,sw,sh,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.88)}
+function imageSharpness(dataURL){return new Promise(resolve=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=96;c.height=72;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0,96,72);const a=ctx.getImageData(0,0,96,72).data;let total=0;for(let y=1;y<70;y+=2)for(let x=1;x<94;x+=2){let i=(y*96+x)*4;total+=Math.abs(a[i]-a[i+4])+Math.abs(a[i]-a[i+384])}resolve(total)};im.onerror=()=>resolve(0);im.src=dataURL})}
+async function labelBird(img){if(!classifier)return {name:'Bird (species model unavailable)',score:null};try{const output=await classifier(img,{topk:3});const best=Array.isArray(output)?output[0]:null;if(!best?.label||!Number.isFinite(best.score))throw Error('No prediction');return {name:best.label.replaceAll('_',' '),score:Math.round(best.score*100)}}catch(e){return{name:'Bird (species identification failed)',score:null}}}
+async function scan(){if(!aiRunning||aiBusy||!stream?.active)return;aiBusy=true;try{const video=$('video');if(video.readyState<2)return;const found=(await detector.detect(video)).filter(x=>x.class==='bird'&&x.score>=.62&&x.bbox[2]>=28&&x.bbox[3]>=28).sort((a,b)=>b.score-a.score);if(!found.length){streak=0;best=null;$('aiResult').textContent='Scanning — no bird detected';$('aiBird').hidden=true;return}const d=found[0];const frame=cropBird(video,d.bbox);const quality=await imageSharpness(frame);if(Date.now()-lastSeen>14000){streak=0;best=null}lastSeen=Date.now();streak++;if(!best||quality>best.quality)best={photo:frame,quality,birdPercent:Math.round(d.score*100)};$('aiResult').textContent='Bird detected ('+best.birdPercent+'% bird-detector score). Choosing a clear frame… '+Math.min(streak,3)+'/3';if(streak>=3){streak=0;const bird=best;best=null;$('aiResult').textContent='Bird detected — identifying species…';const species=await labelBird(bird.photo);$('aiBirdPhoto').src=bird.photo;$('aiBirdName').textContent=species.name;$('aiBirdConfidence').textContent=species.score==null?'':' — '+species.score+'% species estimate';$('aiBird').hidden=false;const now=Date.now();if(now-lastSaved>=120000||lastSavedName!==species.name){saveBird(bird.photo,species.name,species.score);lastSaved=now;lastSavedName=species.name;$('last').textContent=new Date().toLocaleTimeString();$('status').textContent='Bird detected by camera AI';$('aiStatus').textContent='Bird photo saved to Gallery · AI still scanning'}else $('aiStatus').textContent='Bird seen again · skipped duplicate photo';$('aiResult').textContent='Best guess: '+species.name+(species.score==null?'':' · '+species.score+'%')+' (model estimate)'}}catch(e){$('aiStatus').textContent='AI error: '+e.message}finally{aiBusy=false;if(aiRunning)aiTimer=setTimeout(scan,4500)}}
+$('startAI').onclick=async()=>{if(aiRunning)return;try{$('aiStatus').textContent='Requesting phone camera…';await cameraOn();$('aiStatus').textContent='Loading bird-only detector…';await getDetector();$('aiStatus').textContent='Loading specialist bird species AI (first download may take a while)…';try{await getSpeciesClassifier()}catch(e){$('aiStatus').textContent='Species model failed to load: '+e.message+'; bird detector can still save bird photos.'}aiRunning=true;$('aiLiveBadge').textContent='● LIVE · AI scanning';$('aiLiveBadge').style.background='#126b3d';$('aiStatus').textContent=classifier?'Both bird AI models loaded · scanning automatically':'Bird detector loaded · species naming unavailable';scan()}catch(e){$('aiStatus').textContent='Could not start Camera AI: '+e.message}};
+// Arduino status poll is passive and intentionally unchanged; the phone website does not depend on Arduino connectivity.
+setInterval(async()=>{try{const r=await fetch('/status',{cache:'no-store'});if(!r.ok)return;const x=await r.json();if(x?.movementCount!=null)$('count').textContent=String(x.movementCount);if(typeof x.motion==='boolean')$('status').textContent=x.motion?'Movement detected by Arduino':'No Arduino movement';if(typeof x.temperature==='number')$('temperatureReading').textContent=x.temperature.toFixed(1)+' °C'}catch(e){}},3500);
+</script>
+</body></html>
